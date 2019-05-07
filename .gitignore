@@ -1,0 +1,7 @@
+#ignore folders in Part_I
+Part_I/datasets/
+Part_I/downloads/
+
+#ignore folders in Part_II
+Part_II/datasets/
+Part_II/downloads/
