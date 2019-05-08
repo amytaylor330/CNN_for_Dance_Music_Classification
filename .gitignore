@@ -5,3 +5,6 @@ Part_I/downloads/
 #ignore folders in Part_II
 Part_II/datasets/
 Part_II/downloads/
+
+#ignore API keys
+config.py
