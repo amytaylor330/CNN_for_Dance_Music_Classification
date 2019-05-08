@@ -7,4 +7,5 @@ Part_II/datasets/
 Part_II/downloads/
 
 #ignore API keys
-config.py
+Part_I/config.py
+Part_II/config.py
