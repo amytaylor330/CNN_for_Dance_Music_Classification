@@ -43,7 +43,7 @@ Part_I
 ![Alt text](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/images/playlist_header.png)
 
 **Data Abstraction:** With the help of the python wrapper __[Spotipy](https://spotipy.readthedocs.io/en/latest/)__, two different Spotify API endpoints were accessed to get a variety of different information: 
-- __[Get A Playlist's Tracks](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlists-tracks/)__ was used to obtain a 30 second mp3 clip for all the songs in a playlist
+- __[Get A Playlist's Tracks](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlists-tracks/)__ was used to obtain a 30 second mp3 clip for all the songs in a playlist. The number of useable tracks in the dataset was reduced by ~50% because only half of each playlists' tracks contained an mp3 link. 
 - __[Get Audio Features for Several Tracks](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/)__ was used to collect additional song data from 12 categories such as tempo, danceability, etc. 
 
 
@@ -92,9 +92,8 @@ Before inputting into a network, the images were visually examined to identify i
 
 
 ### 6. Neural Network Architecture
-The architecture for this network was selected based on the deep learning project __[Sander Dieleman published while interning at Spotify](http://benanne.github.io/2014/08/05/spotify-cnns.html)__
-- **Input:** To create more samples for the network each 30 second track was divided into ten, resulting in an input of 3 seconds, or 128 frames by 128 frequency bins. The input image was rotated for one-dimensional convolutions to occur on the time axis 
-only.  
+The inspiration for the network architecture came from a deep learning project __[Sander Dieleman published while interning at Spotify](http://benanne.github.io/2014/08/05/spotify-cnns.html)__
+- **Input:** To create more samples for the network each 30 second track was divided into ten, resulting in an input of 3 seconds, or 128 time frames by 128 frequency bins. The input image was rotated for one-dimensional convolutions to occur on the time axis only.  
 - **Network:** This network consists of 3 convolutional layers, all with ReLU activation functions. Each convolution is followed by batch normalization to speed up learning (by normalizing values and reducing oscillations in gradient descent for faster convergence), and max pooling to reduce the spatial size of the output for fewer parameters. Next, a global max pooling layer reduces the convolution dimensions by outputing a single max value for every feature map. The output can then be fed into the remaining dense layers, with the final output predicting two classes of music genres. 
 - **Training** The network was implemented in Keras and trained to minimize accuracy of the predictions. Depending on the parameters chosen, the one-dimensional network required 5-11 minutes to train on my personal laptop. Much time was spent investigating how factors such as dropout, regularization, kernel size, batch size, etc., affected the performance and the shape of the loss/accuracy curves. A similar architecture was tested in a 2D network, but required > 1 hr and was not further tested.
 
