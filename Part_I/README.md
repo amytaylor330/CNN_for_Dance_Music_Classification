@@ -1,8 +1,19 @@
 # CNN Binary Classification of Techno vs. EDM genres 
 
 ## Project Summary
+This report explains how I constructed a convolutional neural network to classify two different genres of dance music: techno and EDM. Tasks performed in this repo include:
+- Acquiring data from Spotify’s API with the help of Spotipy library
+- Preprocessing of mp3 files into spectrogram images using librosa library
+- Binary Classification with a 1D and 2D CNN
+### 1. Background
+**Inspiration** I am a dance music enthusiast! My inspiration for this project came from my love and strong dislike of certain styles of dance music, and my desire to understand why those differences exist. I wanted to see just how well a network could distinguish two genres that are arguably very similar, yet different enough that only one draws me to the dance floor.  *Disclaimer: while music genre tags are a necessary evil and will always be helpful, genre distinctions can be restrictive, can't always be trusted, can be rejected by artists themselves, and are always evolving. Genres help us organize the world, but they are not bulletproof.* 
 
-### 1. Introduction
+**What do I mean by techno and EDM?**
+The words "Techno" and "EDM" both have ambiguous definitions, dependent on the individual and context. Each could be referring to a more specific style, OR intended to mean a broader, umbrella term that includes many unique styles. 
+- Any type of dance music made with computers is technically electronic dance music, but there is also a specific style of dance music commonly referred to as EDM (short for electronic dance music), which is the popular, commercial style heard at American music festivals by artists such as Diplo, Calvin Harris, Tiesto, etc. 
+- Techno is a style of dance music that originated in Detroit in the late 1980s and has since evolved into many sub-genres. Someone using the term techno could be referring to the more specific, original Detroit style, or one of the many sub-styles. 
+
+
 ### 2. Notebook Structure 
 Notebooks:
 - __[1.1_EDM_Download_Tracks_and_Audio_Features.ipynb](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/1.1_EDM_Download_Tracks_and_Audio_Features.ipynb)__ EDM song data collection from Spotify and EDA of features
@@ -18,8 +29,8 @@ Part_I
   |---datasets
   |       techno.csv      (dataframe of song ids, mp3 links, and audio features)
   |       edm.csv
-  |       song_specs.npy  (processed mel-spec input array for network. Not Available for download)
-  |       genres.npy      (associated label inputs for network. Not avaialble for download)
+  |       song_specs.npy  (processed mel-spec input array for network. Not available for download)
+  |       genres.npy      (associated label inputs for network. Not available for download)
   |
   |---downloads
          |---techno       (folder containing 878 mp3 files)
@@ -56,7 +67,7 @@ Part_I
 |2| key | The key the track is in. Integers map to pitches using standard Pitch Class notation |
 |2| loudness |The overall loudness of a track in decibels  |
 |2| mode | Modality of track. 0 = minor, 1 = minor|
-|2| speech | Detects presence of spoken words from 0 to 1.0 (values abouve 0.66 likely all spoken word) |
+|2| speech | Detects presence of spoken words from 0 to 1.0 (values above 0.66 likely all spoken word) |
 |2| tempo | Overall estimated tempo of a track in BPM. |
 |2| time_signature | An estimated overall time signature for how many beats in a measure |
 |2| valence | Musical positiveness measured from 0.0 to 1.0 (sad/negative to happy/positive)|
@@ -70,19 +81,45 @@ The distribution of audio features were compared for the two playlists. For all 
 
 
 ### 5. Spectrogram Conversion & Preprocessing
-The mp3 files were converted to spectrogram images using the librosa library. There are many options for spectrogram conversion, which is discussed in more detail in __[Notebook 1.3](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/1.3_Audio_File_Manipulation_and_Neural_Network.ipynb)__. Different conversions for a 30 second clip are shown below: Figure 1 displays the mp3 file as a one-dimensional pressure-time plot. A fourier transformation yields the mel-spectrogram, displayed in both Figures 2 and 3 with the only difference being the scale of loudness (in decibels) at the associated frequencies. 
+The mp3 files were converted to mel-spectrogram images using the librosa library. There are many options for spectrogram conversion, which is discussed in more detail in __[Notebook 1.3](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/1.3_Audio_File_Manipulation_and_Neural_Network.ipynb)__. Different conversions for a 30 second clip are shown below: Figure 1 displays the mp3 file as a one-dimensional pressure-time plot. A fourier transformation yields the mel-spectrogram, displayed in both Figures 2 and 3 with the only difference being the scale of loudness (in decibels) at the associated frequencies. 
 
 ![Alt text](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/images/spectrograms.png)
 
 
-Before inputting into a network, the images were visually examined to identify if a human could distinguish between both genres. If we look at the melspectrograms for the first 30 tracks in each playlist (rotated so time is on the y-axis), we can see that there is a noticable difference between techno and EDM. A network should easily be able to learn these differences. 
+Before inputting into a network, the images were visually examined to identify if a human could distinguish between both genres. If we look at the mel-spectrograms for the first 30 tracks in each playlist (rotated so time is on the y-axis), we can see that there is a noticeable difference between techno and EDM. A network should easily be able to learn these differences. 
 
 ![Alt text](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/images/30_melspecs.png)
 
 
 ### 6. Neural Network Architecture
+The architecture for this network was selected based on the deep learning project __[Sander Dieleman published while interning at Spotify](http://benanne.github.io/2014/08/05/spotify-cnns.html)__
+- **Input:** To create more samples for the network each 30 second track was divided into ten, resulting in an input of 3 seconds, or 128 frames by 128 frequency bins. The input image was rotated for one-dimensional convolutions to occur on the time axis 
+only.  
+- **Network:** This network consists of 3 convolutional layers, all with ReLU activation functions. Each convolution is followed by batch normalization to speed up learning (by normalizing values and reducing oscillations in gradient descent for faster convergence), and max pooling to reduce the spatial size of the output for fewer parameters. Next, a global max pooling layer reduces the convolution dimensions by outputing a single max value for every feature map. The output can then be fed into the remaining dense layers, with the final output predicting two classes of music genres. 
+- **Training** The network was implemented in Keras and trained to minimize accuracy of the predictions. Depending on the parameters chosen, the one-dimensional network required 5-11 minutes to train on my personal laptop. Much time was spent investigating how factors such as dropout, regularization, kernel size, batch size, etc., affected the performance and the shape of the loss/accuracy curves. A similar architecture was tested in a 2D network, but required > 1 hr and was not further tested.
+
+
+
 ![Alt text](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/images/network_architecture.png)
 
 ### 7. Results
-
+The most favorable result was selected as the one with the most ideal loss/accuracy curves as well as the final accuracy scores (without being overfit). The final 1D CNN was able to predict the genre with 94% accuracy on the training set and 93% accuracy on the test set. 
 ![Alt text](https://github.com/amytaylor330/CNN_for_Dance_Music_Classification_repost/blob/master/Part_I/images/1D_results.png)
+
+The most important factors affecting the model's performance were found to be:
+- Shape of spectrogram: time on y-axis (for direction of convolution), and normalizing the values (results in a smoother learning rate)
+- Dropout placement and amount: didn't do much when placed after a convolution, but necessary in the dense layers to reduce overfitting.
+- Minibatch gradient descent: reduced overfitting (good results with batch size around 3000-5000)
+
+Less important but still crucial
+- Regularization: to reduce overfitting and control the rate of learning 
+- Number of epochs: ideal number changed for different parameters, but was reliable at around 20 epochs. 
+
+Parameters that barely changed final result:
+- Kernel size
+- Max pool stride: increasing the stride greatly increases the training time
+
+**Future work** With unlimited time and GPU I would spent more time investigating topics such as:
+- Substituting the global max pool layer with alternatives, such as global average pooling or LSTM
+- Different activation functions (I only tried ReLU)
+- Analyzing the feature maps and learned features
